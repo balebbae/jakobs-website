@@ -1,44 +1,17 @@
-import { getRequest } from "@tanstack/react-start/server";
+import "server-only";
+import { cookies } from "next/headers";
+import { OWNER_COOKIE, isOwnerId } from "@/lib/owner";
 
-import { type SessionUser, verifyIdentityToken } from "./identity-jwt";
+export type SessionUser = { userId: string; displayName: string | null; email: string | null };
 
-export type { SessionUser };
-
-export async function getEnv(): Promise<Record<string, string | undefined>> {
-  // Dynamic import: @cloudflare/vite-plugin may not be installed or may lack the
-  // ./server export depending on version.
-  try {
-    const mod = "@cloudflare/vite-plugin/server";
-    const { getCloudflareContext } = await import(/* @vite-ignore */ mod);
-    const ctx = await getCloudflareContext();
-    return ctx.env as Record<string, string | undefined>;
-  } catch {
-    return process.env as Record<string, string | undefined>;
-  }
+/** Returns the owner of the current request, or null when the browser has no owner cookie. */
+export async function getSessionUser(): Promise<SessionUser | null> {
+  const id = (await cookies()).get(OWNER_COOKIE)?.value;
+  return isOwnerId(id) ? { userId: id, displayName: null, email: null } : null;
 }
 
-/**
- * Returns the authenticated user from the current request.
- *
- * Verifies the Lovable identity token from the `x-lovable-identity-token`
- * header against the platform's JWKS endpoint. No shared secrets needed.
- *
- * Returns null for unauthenticated requests, including anonymous visits to
- * public apps that did not bootstrap project auth.
- *
- * Only call in server-side code: route loaders or createServerFn handlers.
- */
-export async function getSessionUser(): Promise<SessionUser | null> {
-  const request = getRequest();
-  if (!request) return null;
-
-  const env = await getEnv();
-
-  const identityToken = request.headers.get("x-lovable-identity-token");
-  if (!identityToken) return null;
-
-  const jwksUrl = env["__LOVABLE_JWKS_URL"];
-  if (!jwksUrl) return null;
-
-  return verifyIdentityToken(identityToken, jwksUrl, env["__LOVABLE_PROJECT_ID"]);
+export async function requireOwner() {
+  const user = await getSessionUser();
+  if (!user) throw new Error("Your session is needed to access saves.");
+  return user.userId;
 }

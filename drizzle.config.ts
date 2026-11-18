@@ -1,10 +1,15 @@
+import { config } from "dotenv";
 import { defineConfig } from "drizzle-kit";
+
+config({ path: ".env.local" });
+config();
 
 export default defineConfig({
   dialect: "postgresql",
-  schema: "./drizzle/schema.ts",
-  out: "./drizzle/migrations",
+  schema: "./src/db/schema.ts",
+  out: "./drizzle",
   dbCredentials: {
-    url: process.env.LOVABLE_DB_MIGRATION_URL ?? "",
+    // Migrations need the direct (non-pooled) Neon connection.
+    url: process.env["DATABASE_URL_UNPOOLED"] ?? process.env["DATABASE_URL"] ?? "",
   },
 });

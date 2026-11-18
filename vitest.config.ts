@@ -11,6 +11,10 @@ export default defineConfig({
     include: ["src/**/*.{test,spec}.{ts,tsx}"],
   },
   resolve: {
-    alias: { "@": path.resolve(__dirname, "./src") },
+    alias: {
+      "@": path.resolve(import.meta.dirname, "./src"),
+      // Next.js marker package; it has nothing to do outside a Next.js build.
+      "server-only": path.resolve(import.meta.dirname, "./src/test/empty.ts"),
+    },
   },
 });

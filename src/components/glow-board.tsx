@@ -1,3 +1,5 @@
+"use client";
+
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { Moon, Undo2 } from "lucide-react";
 import { MediaHiddenContext } from "@/components/background-photos";
@@ -12,7 +14,7 @@ import { HomePhotoScene } from "@/components/home-photo-scene";
 import { MetricEditor, type MetricState } from "@/components/metric-editor";
 import { FloatingBoxes, InsertNote, InsertProgress, newNoteBox, newProgressBox } from "@/components/floating-boxes";
 import { DashboardView } from "@/components/dashboard-view";
-import horusEye from "@/assets/horus-eye.png.asset.json";
+import { horusEye } from "@/lib/assets";
 
 export function GlowBoard({ opening = null }: { opening?: ReturnType<typeof initialBoard> | null } = {}) {
   const [board, setBoard] = useState(() => opening ?? initialBoard());

@@ -1,7 +1,7 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { HomeDragon } from "@/components/home-dragon";
-import sleeping from "@/assets/menu-dragon-sleeping.mp4.asset.json";
+import { sleepingDragon as sleeping } from "@/lib/assets";
 
 describe("Home dragon playback", () => {
   it("keeps only the sleeping clip while toggling playback", () => {

@@ -1,7 +1,9 @@
+"use client";
+
 import { useEffect, useRef, useState } from "react";
 import { Pause, Play } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import sleeping from "@/assets/menu-dragon-sleeping.mp4.asset.json";
+import { sleepingDragon as sleeping } from "@/lib/assets";
 
 export function HomeDragon() {
   const [paused, setPaused] = useState(false);

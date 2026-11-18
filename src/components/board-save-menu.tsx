@@ -1,5 +1,7 @@
+"use client";
+
 import { useEffect, useRef, useState } from "react";
-import { useHydrated } from "@tanstack/react-router";
+import { useHydrated } from "@/hooks/use-hydrated";
 import { Save, FolderOpen, Check, LoaderCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { listBoardSaves, readBoardSave } from "@/lib/board-saves.functions";

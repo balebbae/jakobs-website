@@ -1,3 +1,5 @@
+"use client";
+
 import { useRef, useState } from "react";
 import { Minus, Plus, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
