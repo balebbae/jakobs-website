@@ -1,0 +1,101 @@
+import { useRef } from "react";
+import { Button } from "@/components/ui/button";
+import { ChecklistParagraph } from "@/components/checklist-paragraph";
+import { MetricEditor } from "@/components/metric-editor";
+import type { NoteBoxState, ProgressBoxState } from "@/lib/board-state";
+
+const startX = (width: number) => typeof window === "undefined" ? 40 : Math.max(0, (window.innerWidth - width) / 2);
+export function newProgressBox(): ProgressBoxState { return { id: crypto.randomUUID(), label: "Progress", value: 0, x: startX(220), y: 260, width: 220 }; }
+export function newNoteBox(): NoteBoxState { return { id: crypto.randomUUID(), label: "Note", text: "", x: startX(160), y: 260, width: 160, height: 160 }; }
+
+type Rect = { x: number; y: number; width: number; height?: number | undefined };
+
+/** Same move / corner-resize / four-tap-delete gesture as graphs, on the box's own border area. */
+function useBoxGesture<T extends Rect>(box: T, onChange: (c: Partial<T>) => void, onRemove: () => void, scale: number, min: { w: number; h: number }) {
+  const g = useRef<{ corner: { x: number; y: number } | null; x: number; y: number; start: T; moved: boolean } | null>(null);
+  const taps = useRef<number[]>([]);
+  const edgeOf = (e: React.PointerEvent<HTMLElement>) => {
+    const r = e.currentTarget.getBoundingClientRect(); const edge = Math.min(16, r.width / 4, r.height / 4);
+    return { h: e.clientX - r.left <= edge ? -1 : r.right - e.clientX <= edge ? 1 : 0, v: e.clientY - r.top <= edge ? -1 : r.bottom - e.clientY <= edge ? 1 : 0 };
+  };
+  return {
+    onPointerDown: (e: React.PointerEvent<HTMLElement>) => {
+      if (e.button !== 0 || e.target !== e.currentTarget) return;
+      e.preventDefault(); e.currentTarget.setPointerCapture?.(e.pointerId);
+      const { h, v } = edgeOf(e);
+      g.current = { corner: h && v ? { x: h, y: v } : null, x: e.clientX, y: e.clientY, start: box, moved: false };
+    },
+    onPointerMove: (e: React.PointerEvent<HTMLElement>) => {
+      const s = g.current;
+      if (!s) { if (e.target === e.currentTarget) { const { h, v } = edgeOf(e); e.currentTarget.style.cursor = h && v ? (h === v ? "nwse-resize" : "nesw-resize") : "move"; } return; }
+      const dx = (e.clientX - s.x) / scale, dy = (e.clientY - s.y) / scale;
+      if (Math.hypot(dx, dy) > 4) s.moved = true;
+      if (!s.moved) return;
+      taps.current = [];
+      if (!s.corner) return onChange({ x: s.start.x + dx, y: s.start.y + dy } as Partial<T>);
+      const width = Math.max(min.w, Math.min(3000, s.start.width + s.corner.x * dx));
+      const changes: Partial<Rect> = { width, x: s.start.x + (s.corner.x < 0 ? s.start.width - width : 0) };
+      if (s.start.height !== undefined) {
+        const height = Math.max(min.h, Math.min(3000, s.start.height + s.corner.y * dy));
+        changes.height = height; changes.y = s.start.y + (s.corner.y < 0 ? s.start.height - height : 0);
+      }
+      onChange(changes as Partial<T>);
+    },
+    onPointerUp: (e: React.PointerEvent<HTMLElement>) => {
+      const s = g.current; g.current = null;
+      if (!s || s.moved) return;
+      const recent = taps.current.filter(t => e.timeStamp - t < 2000); recent.push(e.timeStamp);
+      if (recent.length >= 4) { taps.current = []; onRemove(); } else taps.current = recent;
+    },
+    onPointerCancel: () => { g.current = null; taps.current = []; },
+  };
+}
+
+export function InsertProgress({ onInsert }: { onInsert: () => void }) {
+  return <Button variant="outline" aria-label="Insert progress bar" title="Insert progress bar" onClick={onInsert}
+    className="glow-button graph-insert aspect-square h-auto w-[68.2667px] max-w-[10.1333vw] self-end p-1">
+    <span className="progress-symbol" aria-hidden="true"><span /></span>
+  </Button>;
+}
+export function InsertNote({ onInsert }: { onInsert: () => void }) {
+  return <Button variant="outline" aria-label="Insert paragraph" title="Insert paragraph" onClick={onInsert}
+    className="glow-button graph-insert aspect-square h-auto w-[68.2667px] max-w-[10.1333vw] self-end p-1">
+    <span className="note-symbol" aria-hidden="true"><span /><span /><span /></span>
+  </Button>;
+}
+
+function ProgressBox({ box, n, scale, onChange, onRemove }: { box: ProgressBoxState; n: number; scale: number; onChange: (c: Partial<ProgressBoxState>) => void; onRemove: () => void }) {
+  const element = useRef<HTMLDivElement>(null);
+  const minimumHeight = () => {
+    const header = element.current?.querySelector<HTMLElement>("[data-metric-heading]");
+    return (header?.getBoundingClientRect().height ?? 15) / scale + (box.boxMode ? 14 : 26);
+  };
+  const minimumWidth = () => {
+    const title = element.current?.querySelector<HTMLElement>(".progress-title");
+    const total = element.current?.querySelector<HTMLInputElement>("[data-metric-heading] > input");
+    return title && total ? (title.getBoundingClientRect().width + total.getBoundingClientRect().width) / scale + 22 : 64;
+  };
+  const resizeBox = box.boxMode ? { ...box, height: box.height ?? (element.current?.getBoundingClientRect().height ?? 64 * scale) / scale } : box;
+  const gesture = useBoxGesture(resizeBox, onChange, onRemove, scale, { w: box.boxMode ? minimumWidth() : 120, h: minimumHeight() });
+  return <div ref={element} role="group" aria-label={`Progress box ${n}`} data-box-mode={box.boxMode ? "" : undefined} className="floating-box glow-box space-y-1 p-3" style={{ left: box.x, top: box.y, width: box.width, ...(box.boxMode ? { minWidth: minimumWidth() } : {}), ...(box.boxMode && box.height !== undefined ? { height: box.height, minHeight: minimumHeight() } : {}) }} {...gesture}>
+    <div className="h-full overflow-hidden"><MetricEditor metric={box} label={`Progress box ${n}`} onChange={onChange} /></div>
+  </div>;
+}
+
+function NoteBox({ box, n, scale, onChange, onRemove }: { box: NoteBoxState; n: number; scale: number; onChange: (c: Partial<NoteBoxState>) => void; onRemove: () => void }) {
+  const gesture = useBoxGesture(box, onChange, onRemove, scale, { w: 80, h: 60 });
+  return <div role="group" aria-label={`Paragraph box ${n}`} className="floating-box glow-box flex flex-col gap-1 p-3" style={{ left: box.x, top: box.y, width: box.width, height: box.height }} {...gesture}>
+    <input aria-label={`Paragraph box ${n} title`} value={box.label} onChange={e => onChange({ label: e.target.value })}
+      className="bg-transparent text-[8px] font-semibold uppercase leading-tight outline-none" />
+    <ChecklistParagraph value={box.text} label={`${box.label} paragraph`} onChange={text => onChange({ text })}
+      className="glow-input w-full min-h-0 flex-1 resize-none p-1 text-[8px] leading-[1.15] tracking-tight" />
+  </div>;
+}
+
+export function FloatingBoxes({ bars, notes, scale, onBars, onNotes }: { bars: ProgressBoxState[]; notes: NoteBoxState[]; scale: number; onBars: (u: (b: ProgressBoxState[]) => ProgressBoxState[]) => void; onNotes: (u: (n: NoteBoxState[]) => NoteBoxState[]) => void }) {
+  if (!bars.length && !notes.length) return null;
+  return <section className="bar-graphs" aria-label="Inserted boxes">
+    {bars.map((b, i) => <ProgressBox key={b.id} box={b} n={i + 1} scale={scale} onRemove={() => onBars(l => l.filter(x => x.id !== b.id))} onChange={c => onBars(l => l.map(x => x.id === b.id ? { ...x, ...c } : x))} />)}
+    {notes.map((b, i) => <NoteBox key={b.id} box={b} n={i + 1} scale={scale} onRemove={() => onNotes(l => l.filter(x => x.id !== b.id))} onChange={c => onNotes(l => l.map(x => x.id === b.id ? { ...x, ...c } : x))} />)}
+  </section>;
+}

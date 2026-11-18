@@ -1,0 +1,32 @@
+# Dashboard photo editing
+- [x] Add four-second metric hold, editable square totals and wrapping completion boxes for anchor and floating metrics; preserve snapshots and verify interactions.
+- [x] Keep only the sleeping dragon and enlarge the home moon with sharp tips; verify desktop/mobile appearance and playback unit tests.
+- [x] Add three original monochrome dragon loops to home with single-clip playback and offscreen pausing; verify clips and controls.
+- [x] Update new templates to numbered metrics and notes with equal-size, spaced boxes; preserve saved content and verify tab editing.
+- [x] Add background-only photo movement, proportional resizing, and basic formatting.
+- [x] Move Image options below the bars at the requested width.
+- [x] Verify uploads and editing on desktop and narrow screens.
+- [x] Simplify insertion symbol and halve photo handles; dismiss editing on outside clicks.
+- [x] Add three proportional mini notes with above-left wrapping on narrow pages.
+- [x] Verify photo dismissal and both note layouts.
+- [x] Add moon home screen and ten independent titled dashboard tabs.
+- [x] Halve mini paragraph height and verify tab switching and retained edits.
+- [x] Fit tabs to white titles with slight active emphasis, including home.
+- [x] Add home moon image insertion and simplify all photos to dragging, corner resizing and triple-tap deletion.
+- [x] Test photo gesture rules and verify home and dashboard interactions.
+- [x] Add triple-tap checklist lines to every paragraph, with Enter continuation and double-Enter exit.
+- [x] Test checklist rules and verify editing and retained notes in the page.
+- [x] Fill completed checklist boxes white.
+- [x] Add ten private whole-board save slots, restore and confirmed overwrite, one-second hover and outside dismissal.
+- [x] Test save rules and verify the interface.
+- [x] Add a graph insertion button beneath images and two draggable percentage bars with axis titles.
+- [x] Preserve graphs in tab snapshots and verify graph editing on desktop and narrow pages.
+- [x] Add hold-to-create prompts and four independent subtabs per parent with hover navigation.
+- [x] Preserve subtabs in whole-board saves and verify creation, limits, dismissal and retained editing.
+- [x] Keep clicked parent subtab menus available until an outside click.
+- [x] Add home zoom while no element is being edited and verify both interactions.
+- [x] Let background dragging pan the home moon and photos together; verify alongside zoom.
+- [x] Add horizontal parent-tab and vertical subtab dragging; retain content and selection and verify both.
+- [x] Show complete bar and paragraph titles.
+- [x] Autosave changes to the opened slot and restore the last board/view after refresh.
+- [x] Test autosave, slot switching and refresh restoration; live Cloud verification requires the workspace session unavailable in the local browser.- [x] Insert buttons for progress bars and paragraphs; dashboard page zoom + drag
