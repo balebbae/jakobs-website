@@ -8,7 +8,7 @@ export async function uploadVideo(file: File) {
   const ext = file.name.split(".").pop() || "mp4";
   const path = `${user.userId}/${crypto.randomUUID()}.${ext}`;
   try {
-    const blob = await upload(path, file, { access: "public", handleUploadUrl: "/api/videos/upload", contentType: file.type, multipart: file.size > 50 * 1024 * 1024 });
+    const blob = await upload(path, file, { access: "public", handleUploadUrl: "/api/blob/upload", contentType: file.type, multipart: file.size > 50 * 1024 * 1024 });
     return blob.url;
   } catch { throw new Error("Could not upload the video."); }
 }

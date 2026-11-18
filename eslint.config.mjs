@@ -5,7 +5,7 @@ import { defineConfig, globalIgnores } from "eslint/config";
 export default defineConfig([
   ...nextVitals,
   ...nextTs,
-  globalIgnores([".next/**", "next-env.d.ts", "drizzle/**"]),
+  globalIgnores([".next/**", "next-env.d.ts"]),
   {
     rules: {
       "@typescript-eslint/no-unused-vars": "off",

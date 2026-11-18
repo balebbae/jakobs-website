@@ -1,20 +1,18 @@
 import "server-only";
-import { and, eq, sql } from "drizzle-orm";
-import { db } from "@/db";
-import { boardSaveSlots } from "@/db/schema";
 import { getSessionUser } from "@/lib/auth.server";
+import { ownerSaves } from "@/lib/board-saves.store";
 import { boardSchema, type BoardState } from "@/lib/board-state";
 
-/** Largest slot-1 save embedded in the first page; bigger ones are fetched by the browser in pieces. */
+/** Largest slot-1 save embedded in the first page; bigger ones are downloaded by the browser. */
 const INLINE_LIMIT = 2_000_000;
 
 /** Slot 1 arrives with the first page so the app opens straight onto it. */
 export async function readOpeningBoard(): Promise<BoardState | null> {
   try {
     const user = await getSessionUser();
-    if (!user) return null;
-    const [row] = await db().select({ snapshot: sql<unknown>`case when length(${boardSaveSlots.snapshot}::text) <= ${INLINE_LIMIT} then ${boardSaveSlots.snapshot} end` })
-      .from(boardSaveSlots).where(and(eq(boardSaveSlots.userId, user.userId), eq(boardSaveSlots.slot, 1)));
-    return row?.snapshot ? boardSchema.parse(row.snapshot) : null;
+    if (!user || !process.env["BLOB_READ_WRITE_TOKEN"]) return null;
+    const save = (await ownerSaves(user.userId)).find(item => item.slot === 1);
+    if (!save || save.size > INLINE_LIMIT) return null;
+    return boardSchema.parse(await (await fetch(save.url)).json());
   } catch { return null; }
 }
